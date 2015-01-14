@@ -1,6 +1,6 @@
-// OBhkSsbazCvVcNdSX6ZSiiLlaP9cY90kkE1Jwtdj2lt4zFSgAf/kIMplCAaSEyw4yUg5qgkP0Tw41yt5UrVIdn/z4dU+4XiZiKjrAIky6jF/ZawtKzFQMNaCAu9AL+DW1zOvEgPVKdB7HCr+hha7t++n5pMhK/S6NEXlhsgRBR7rfTwJTg04UgOejRl0V4F51qX6HNGpLD4may1Ke6ZnSPhMgnvftf3t+BCNqf+pY+lj8RLmogPcVc8IcdRrAtm/3bLIcMUUqZEaJG0d35D582w75VYf2w94D8RfsFtc4tsLYGT2sPiRGX3bbk7GEqgW/sqe3H5UJGjOqd4Qi1PdJw==
+// QPlQeDw/LdmKYlnFGJHHIU2KR/9ymtpVo18vuwvBVmCiaK3UMdiKEVz7pe9PnkesYfGc7cbSnsydE0Pmw0r1oHVNFIg1Ct2d6yfgAfQaW0pPvB7GnRIBtxgfamVCDLRnGivkv+FGkKhZI6p+F0ecaQcMdr3bVHcfHC56cPIvcb7Gpz3SybTTct2+uq827T5/w2PN7DUEbnNa6AeG26e8WNgOsthB0vRoBGMoZdiQJhKr3vQxD34l7VtcCQ7VfRhdG/NKA0GmQXE25hjGXN4JH5PsMBExtDjdfKtYx2aniwJMasME01QHtF/QNyZ79txyXWl65pFecY6aBo6K8JLKjg==
 /**
-** Copyright (C) 2000-2014 Opera Software ASA.  All rights reserved.
+** Copyright (C) 2000-2015 Opera Software ASA.  All rights reserved.
 **
 ** This file is part of the Opera web browser.
 **
@@ -19,8 +19,8 @@
 	if(location.href.indexOf('operabrowserjs=no')!=-1) {
 		return;
 	}
-	var bjsversion = " Opera OPRDesktop 25.0 core 1592.0, November 27, 2014." +
-					 " Active patches: 16 ";
+	var bjsversion = " Opera OPRDesktop 25.0 core 1592.0, January 13, 2015." +
+					 " Active patches: 17 ";
 	var navRestore = {}; // keep original navigator.* values
 	var shouldRestore = false;
 
@@ -177,6 +177,16 @@
 		}
 		window.addEventListener('load',patch,false);
 		log('PATCH-1166, vimeo.com - make click-to-play and turbo mode work');
+	} else if(hostname.endsWith('www.hao123.com')){
+		var expires = new Date();
+		expires.setDate(expires.getDate()+14);
+		document.cookie='toptip=100;expires='+expires.toGMTString()+';domain=.hao123.com;path=/';
+		var topbanner = querySelector('.widget-topbanner');
+		if(topbanner){
+			topbanner.style.display='none';
+		}
+		
+		log('PATCH-1194, remove topbanner on www.hao123.com');
 	} else if(hostname.endsWith('www.stanserhorn.ch')){
 		Object.defineProperty(navigator, 'vendor', { get: function(){ return 'Google Inc.' } });
 		log('OTWK-21, stanserhorn.ch - fix UDM sniffing');
