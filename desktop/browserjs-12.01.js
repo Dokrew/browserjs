@@ -1,6 +1,6 @@
-// cwCasfmrbCNZKelgVlgrnvC7x/s2dnWagmDXnXDy3QeXNTGPQpdZN0PJUvqzu5nCNjC76XMEusgeQ1LIn1d+anvjE0aJ/PR/6ptYW8eRmryX5D/LbGkuX2qwnpedLgwRvjCZJE2NW0WSHuZcac2mpRsDcAakmWbX24jD2v8ziOQcliyTGHEYTUQ8iH3GfXs1OAnfaFjjKbhiP0eYXbtymwKEXkOoi3QOFH1XRwySZ2gD0ImSCfB2dLm/J+aI99w6bf9LOpYVHKLCvY1abl8JhUBqoWmTa3MYuYAoxXATVBDss9niZFwykwXoYdvOVXHi06371d7brX078zclK4EqQw==
+// BtgMzZeQ+MyGAhYOTedceJ3QqtO2NettK1DITEyZU6QHvI4GzH/qqqIAwbOjS2b0cxLURzV/v6stLNchbuZvP24Q5HOBFr2xW2VQlUDmuX1yrYKytdEIR5+TLYJp0IqhcJ0/SKdjtSWWQ0Bf6lIk6NUrLrLN9LX/kmQsdwgysrd24kfNyfH+lpujwdp+J8TlhjeRpWlTjtRbaziphB/cSBv9Tx0B3bRnDN0zwLIo07Pv9L44WMzispDmACPJ3X/tOaMjCzyHWKyPUjJBIp5rC+7niDcWrJpa/pi+s5gg9NIhTZ78XIKKlNik08jgGTgQ41xMYeBdxbJcxNYW40ttNw==
 /**
-** Copyright (C) 2000-2014 Opera Software ASA.  All rights reserved.
+** Copyright (C) 2000-2015 Opera Software ASA.  All rights reserved.
 **
 ** This file is part of the Opera web browser.
 **
@@ -18,7 +18,7 @@
 (function(opera){
 	if(!opera || opera._browserjsran)return;
 	opera._browserjsran=true;
-	var bjsversion=' Opera Desktop 12.01 core 2.10.289, October 29, 2014. Active patches: 291 ';
+	var bjsversion=' Opera Desktop 12.01 core 2.10.289, January 13, 2015. Active patches: 286 ';
 	// variables and utility functions
 	var navRestore = {}; // keep original navigator.* values
 	var shouldRestore = false;
@@ -1140,16 +1140,6 @@ function setTinyMCEVersion(e){
 		})(Element.prototype.appendChild);
 		
 		log('PATCH-1136, Fix script loading order in addthis widget');
-	} else if(hostname.endsWith('search.nta.co.jp')){
-		opera.addEventListener('BeforeScript',function(ev){
-			var name=ev.element.src; 
-			if(!name){return;}
-			if(name.indexOf('nta_yado/index.js')>-1){
-				ev.element.text = ev.element.text.replace(/([\w]+)\.innerHTML\s*=\s*([\w]+)\.innerHTML\.replace/g,"var myimg=$1.getElementsByTagName('img')[0];myimg.src=myimg.src.replace");
-			}
-		},false);
-		
-		log('PATCH-949, search.nta.co.jp - fix mouseover/mouseout state change with innerHTML');
 	} else if(hostname.endsWith('sears.com')){
 		addCssToDocument('.scrollWidget .slider { top: 0; } .thumbWidget .slider2 { top: 0; }');
 		log('PATCH-847, sears.com - fix moving product thumbnail images');
@@ -1749,14 +1739,6 @@ function setTinyMCEVersion(e){
 		window.constructor={};
 		window.constructor.prototype={};
 		log('PATCH-694, b9dm.com: prevent high CPU usage');
-	} else if(hostname.indexOf('balkanweb.com')>-1){
-		opera.defineMagicFunction('ticker_start', function(oRealFunc, oThis){
-			var ua=navigator.userAgent;
-			navigator.userAgent+=' Firefox';
-			oRealFunc.call(oThis);
-			navigator.userAgent=ua;
-		});
-		log('PATCH-421, Enable news ticker on Balkanweb');
 	} else if(hostname.indexOf('bankofamerica.com')>-1){
 		opera.defineMagicFunction('getVersionString', function(){ return ''+parseFloat(opera.version()); });
 		log('PATCH-668, Broken browser sniffing prevents SafePass login on Bank of America site');
@@ -1913,9 +1895,6 @@ function setTinyMCEVersion(e){
 			}
 		},false);
 		log('PATCH-650, Fix search suggestions on Goo search engine');
-	} else if(hostname.indexOf('googletv.blogspot.')>-1){
-		addCssToDocument('div.post-body div{text-align:inherit !important}');
-		log('PATCH-603, GoogleTV: fix broken word spacing - Opera bug');
 	} else if(hostname.indexOf('groups.live.com')>-1){
 		addCssToDocument('span.et_main{padding-left:0 !important}');
 		log('PATCH-571, live.com: make file names visible');
@@ -1934,9 +1913,6 @@ function setTinyMCEVersion(e){
 	} else if(hostname.indexOf('huffingtonpost.com')>-1){
 		addPreprocessHandler(/\|\|adsUA\.indexOf\(\'opera\'\)>-1/,'');
 		log('PATCH-601, Huffingtonpost: Avoid ad overwrite');
-	} else if(hostname.indexOf('huntington.com')>-1){
-		opera.defineMagicVariable('browserOkay',function(){return true},null);
-		log('PATCH-712, huntington.com: work around browser sniff');
 	} else if(hostname.indexOf('inetdec.nra.bg')>-1){
 		addPreprocessHandler( /if\(newiframe&&!window.opera\)/g, 'if(newiframe)', true, function(el){return el.src.indexOf('scripts.js')>-1;} );
 		log('PATCH-537, nra.bg: work around captcha load issue');
@@ -1977,13 +1953,6 @@ function setTinyMCEVersion(e){
 			}
 		},false);
 		log('PATCH-649, Enable keyboard controls on Mapion');
-	} else if(hostname.indexOf('mb.softbank.jp')!=-1){
-		window.opera.addEventListener('BeforeScript', function (e) {
-			if (e.element.src.indexOf('history.js') > -1) {
-				e.element.text = e.element.text.replace(/if \(!this.is_op && hash\)/gi, 'if (hash)');
-			}
-		}, false);
-		log('PATCH-588, SoftBank Mobile History Plugin browser sniffing');
 	} else if(hostname.indexOf('merriam-webster.com')>-1){
 		addCssToDocument('embed[hidden=true]{display:inline;width:0;height:0;}');
 		log('PATCH-540, Merriam-Webster: override embed with hidden attribute. Conflicts with HTML global hidden attribute.');
