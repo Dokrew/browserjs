@@ -1,4 +1,4 @@
-// QPlQeDw/LdmKYlnFGJHHIU2KR/9ymtpVo18vuwvBVmCiaK3UMdiKEVz7pe9PnkesYfGc7cbSnsydE0Pmw0r1oHVNFIg1Ct2d6yfgAfQaW0pPvB7GnRIBtxgfamVCDLRnGivkv+FGkKhZI6p+F0ecaQcMdr3bVHcfHC56cPIvcb7Gpz3SybTTct2+uq827T5/w2PN7DUEbnNa6AeG26e8WNgOsthB0vRoBGMoZdiQJhKr3vQxD34l7VtcCQ7VfRhdG/NKA0GmQXE25hjGXN4JH5PsMBExtDjdfKtYx2aniwJMasME01QHtF/QNyZ79txyXWl65pFecY6aBo6K8JLKjg==
+// Ju13DNnserOul/h0jopSiMNRSMGokyQNJcNnRSwSlXyFnlUER6GvKQplP+31of8XuykW3ONdNCsUd53Ke9MJMdp2pLnCHlLrTYm2K0uD1Fhd92qtr6H5Y2EwH88qMsy6gfRHbPQXNxZnkRAWma3Z89jzhazzRwjFabnpI338lGyFkO912mhY9SE6KZezKSD4a8A9SrLhhnpdc1Xk8QnNGp3jXUwJ5Sg1v1kVXGwKDEzSkQZR3Xk3gGDtIg0y7OwVTEF9ALOffAU13Rrvdx6ucp0aSj+eRsuo4Er+XpI+4Ibk3PSSs0mVNcZVgSA6Q/IOR13STE9uzFqu5ec7SVJpbQ==
 /**
 ** Copyright (C) 2000-2015 Opera Software ASA.  All rights reserved.
 **
@@ -19,8 +19,8 @@
 	if(location.href.indexOf('operabrowserjs=no')!=-1) {
 		return;
 	}
-	var bjsversion = " Opera OPRDesktop 25.0 core 1592.0, January 13, 2015." +
-					 " Active patches: 17 ";
+	var bjsversion = " Opera OPRDesktop 25.0 core 1592.0, January 21, 2015." +
+					 " Active patches: 18 ";
 	var navRestore = {}; // keep original navigator.* values
 	var shouldRestore = false;
 
@@ -102,9 +102,49 @@
 				});
 			}, false)
 		}
-		
+
 		log('PATCH-1173, ssc[online][2].{nic,gov}.in - Netscape not supported message - workaround browser sniffing');
-	} else if(hostname.endsWith('.icloud.com')){
+	} else if(hostname.endsWith('.delta.com') || hostname.value == 'delta.com'){
+		var UnsupportedBrowser;
+		Object.defineProperty(window, "UnsupportedBrowser", {
+			get: function(){return UnsupportedBrowser},
+			set: function(arg) {
+				arg.badBrowser=function(){return false};
+				UnsupportedBrowser = arg;
+			}
+		});
+
+		log('PATCH-1190, Delta.com shows browser warning to Opera 25');
+	} else if(hostname.endsWith('.fox.com') || hostname.value == 'fox.com'){
+		var Drupal, foxBrowserUpdate;
+		Object.defineProperty(window, "Drupal", {
+			get: function(){ return Drupal },
+			set: function(arg) {
+				if(!arg.hasOwnProperty('foxBrowserUpdate')) {
+					Object.defineProperty(arg, "foxBrowserUpdate", {
+						get: function(){ return foxBrowserUpdate },
+						set: function(arg) {
+							arg.operaCheck=function(){};
+							foxBrowserUpdate = arg;
+						}
+					});
+				}
+				Drupal = arg;
+			}
+		});
+
+		log('PATCH-1193, fox.com: Disable Drupal.foxBrowserUpdate.operaCheck function');
+	} else if(hostname.endsWith('.hao123.com') || hostname.value == 'hao123.com'){
+		var expires = new Date();
+		expires.setDate(expires.getDate()+14);
+		document.cookie='toptip=100;expires='+expires.toGMTString()+';domain=.hao123.com;path=/';
+		var topbanner = querySelector('.widget-topbanner');
+		if(topbanner){
+			topbanner.style.display='none';
+		}
+
+		log('PATCH-1194, remove topbanner on www.hao123.com');
+	} else if(hostname.endsWith('.icloud.com') || hostname.value == 'icloud.com'){
 		Object.defineProperty(window, "SC", {
 			get: function(){return this.__SC__},
 			set: function(arg) {
@@ -123,45 +163,10 @@
 			}
 		});
 		log('PATCH-1174, iCloud iWork new document stays blank - camouflage as Chrome');
-	} else if(hostname.endsWith('delta.com')){
-		var UnsupportedBrowser;
-		Object.defineProperty(window, "UnsupportedBrowser", {
-			get: function(){return UnsupportedBrowser},
-			set: function(arg) {
-				arg.badBrowser=function(){return false};
-				UnsupportedBrowser = arg;
-			}
-		});
-		
-		log('PATCH-1190, Delta.com shows browser warning to Opera 25');
-	} else if(hostname.endsWith('itunesu.itunes.apple.com')){
-		var _newUA = navigator.userAgent.replace(/ ?OPR.[0-9.]*/, '');
-		Object.defineProperty(window.navigator, "userAgent", {
-			get: function() {return _newUA}
-		});
-		
-		log('PATCH-1187, iTunes U Course Manager - hide Opera tag');
-	} else if(hostname.endsWith('my.tnt.com')){
-		var _orig_clearPrintBlock;
-		function handleMediaChange(mql) {
-			if (mql.matches) {
-				if(typeof clearPrintBlock == "function"){
-					_orig_clearPrintBlock = clearPrintBlock;
-					clearPrintBlock = function(){}
-				}
-			} else {
-				if(typeof _orig_clearPrintBlock == "function"){
-					setTimeout(_orig_clearPrintBlock, 500);
-				}
-			}
-		}
-		
-		document.addEventListener('DOMContentLoaded', function() {
-			var mpl = window.matchMedia("print");
-			mpl.addListener(handleMediaChange);
-		},false);
-		log('PATCH-1156, my.tnt.com - fix empty printout');
-	} else if(hostname.endsWith('vimeo.com')){
+	} else if(hostname.endsWith('.stanserhorn.ch') || hostname.value == 'stanserhorn.ch'){
+		Object.defineProperty(navigator, 'vendor', { get: function(){ return 'Google Inc.' } });
+		log('OTWK-21, stanserhorn.ch - fix UDM sniffing');
+	} else if(hostname.endsWith('.vimeo.com') || hostname.value == 'vimeo.com'){
 		var isPatched = false;
 		function patch(){
 			document.body.addEventListener('click',function(){
@@ -177,23 +182,37 @@
 		}
 		window.addEventListener('load',patch,false);
 		log('PATCH-1166, vimeo.com - make click-to-play and turbo mode work');
-	} else if(hostname.endsWith('www.hao123.com')){
-		var expires = new Date();
-		expires.setDate(expires.getDate()+14);
-		document.cookie='toptip=100;expires='+expires.toGMTString()+';domain=.hao123.com;path=/';
-		var topbanner = querySelector('.widget-topbanner');
-		if(topbanner){
-			topbanner.style.display='none';
+	} else if(hostname.endsWith('itunesu.itunes.apple.com')){
+		var _newUA = navigator.userAgent.replace(/ ?OPR.[0-9.]*/, '');
+		Object.defineProperty(window.navigator, "userAgent", {
+			get: function() {return _newUA}
+		});
+
+		log('PATCH-1187, iTunes U Course Manager - hide Opera tag');
+	} else if(hostname.endsWith('my.tnt.com')){
+		var _orig_clearPrintBlock;
+		function handleMediaChange(mql) {
+			if (mql.matches) {
+				if(typeof clearPrintBlock == "function"){
+					_orig_clearPrintBlock = clearPrintBlock;
+					clearPrintBlock = function(){}
+				}
+			} else {
+				if(typeof _orig_clearPrintBlock == "function"){
+					setTimeout(_orig_clearPrintBlock, 500);
+				}
+			}
 		}
-		
-		log('PATCH-1194, remove topbanner on www.hao123.com');
-	} else if(hostname.endsWith('www.stanserhorn.ch')){
-		Object.defineProperty(navigator, 'vendor', { get: function(){ return 'Google Inc.' } });
-		log('OTWK-21, stanserhorn.ch - fix UDM sniffing');
+
+		document.addEventListener('DOMContentLoaded', function() {
+			var mpl = window.matchMedia("print");
+			mpl.addListener(handleMediaChange);
+		},false);
+		log('PATCH-1156, my.tnt.com - fix empty printout');
 	} else if(hostname.indexOf('.google.')>-1){
 		/* Google */
-	
-	
+
+
 		if(hostname.contains('docs.google.') || hostname.contains('drive.google.')){
 			document.addEventListener('DOMContentLoaded',function(){
 				var elm = document.querySelector('a[href="http://whatbrowser.org"] + a + a');
@@ -222,7 +241,7 @@
 			Object.defineProperty(window.navigator, "userAgent", {
 				get: function() {return _newUA}
 			});
-			
+
 			log('PATCH-1176, Navigation keys are not working on Google - hide Opera tag from userAgent for all sites except hangouts');
 		}
 	} else if(hostname.indexOf('.youtube.com')>-1){
@@ -258,7 +277,7 @@
 					if(arg.split('"').length==2)arg+='"';
 					this.__embed_size_attr__ = arg;
 				}
-			});	
+			});
 		}
 		log('PATCH-555, Analytix: add missing end quote');
 	}
