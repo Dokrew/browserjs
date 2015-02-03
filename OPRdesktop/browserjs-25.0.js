@@ -1,4 +1,4 @@
-// Ju13DNnserOul/h0jopSiMNRSMGokyQNJcNnRSwSlXyFnlUER6GvKQplP+31of8XuykW3ONdNCsUd53Ke9MJMdp2pLnCHlLrTYm2K0uD1Fhd92qtr6H5Y2EwH88qMsy6gfRHbPQXNxZnkRAWma3Z89jzhazzRwjFabnpI338lGyFkO912mhY9SE6KZezKSD4a8A9SrLhhnpdc1Xk8QnNGp3jXUwJ5Sg1v1kVXGwKDEzSkQZR3Xk3gGDtIg0y7OwVTEF9ALOffAU13Rrvdx6ucp0aSj+eRsuo4Er+XpI+4Ibk3PSSs0mVNcZVgSA6Q/IOR13STE9uzFqu5ec7SVJpbQ==
+// QoEA6sbNbl38cfF5rNdS/zCziJhBPoVBTnN70tB4TD9CmQ+qmgYR+G1HGc3geAiZXt7+dQc42Md9M+hyyV59Xv09UwQP9P5Vh1npFBq2lsUlEEyDgXYlF4Cupxi1KhoS5sVqHyUkcgmQzl4y7YUxN14www8JaZdTSrrKB3MY9JmKAh3KMZSP4HoPzyfRucglRLz1n7Rpf9eH/IKm2oyf7aDinQPm0fnfPhuL6f3KzvX3Wg7luK4H2k7nnPDSNw0XzLHR+fxDfa/xrim3W0MCtLrI+lOkfZ0oGfZKetIcClb+b3A7M1a6JXE9xy0W3P9K+Xp1RYLpSYVFBlgGRZK3Hw==
 /**
 ** Copyright (C) 2000-2015 Opera Software ASA.  All rights reserved.
 **
@@ -19,8 +19,8 @@
 	if(location.href.indexOf('operabrowserjs=no')!=-1) {
 		return;
 	}
-	var bjsversion = " Opera OPRDesktop 25.0 core 1592.0, January 21, 2015." +
-					 " Active patches: 18 ";
+	var bjsversion = " Opera OPRDesktop 25.0 core 1592.0, February 2, 2015." +
+					 " Active patches: 19 ";
 	var navRestore = {}; // keep original navigator.* values
 	var shouldRestore = false;
 
@@ -102,7 +102,7 @@
 				});
 			}, false)
 		}
-
+		
 		log('PATCH-1173, ssc[online][2].{nic,gov}.in - Netscape not supported message - workaround browser sniffing');
 	} else if(hostname.endsWith('.delta.com') || hostname.value == 'delta.com'){
 		var UnsupportedBrowser;
@@ -113,8 +113,29 @@
 				UnsupportedBrowser = arg;
 			}
 		});
-
+		
 		log('PATCH-1190, Delta.com shows browser warning to Opera 25');
+	} else if(hostname.endsWith('.facebook.com') || hostname.value == 'facebook.com'){
+		document.addEventListener("keypress", function(e) {
+		    // check if it's first character here
+		    if (e.target.textContent !== '')
+		        return;
+		    // check that it's a comment box
+		    var element = e.target;
+		    while (!element.classList.contains('UFIAddCommentInput')) {
+		        element = element.parentElement;
+		        if (!element)
+		            return;
+		    }
+		    e.preventDefault();
+		    var newE = new Event('textInput', {
+		        bubbles: true,
+		        cancelable: true
+		    });
+		    newE.data = String.fromCharCode(e.charCode);
+		    e.target.dispatchEvent(newE);
+		})
+		log('PATCH-1195, Facebook - block first character in the comment field from triggering a single key keyboard shortcut');
 	} else if(hostname.endsWith('.fox.com') || hostname.value == 'fox.com'){
 		var Drupal, foxBrowserUpdate;
 		Object.defineProperty(window, "Drupal", {
@@ -132,7 +153,7 @@
 				Drupal = arg;
 			}
 		});
-
+		
 		log('PATCH-1193, fox.com: Disable Drupal.foxBrowserUpdate.operaCheck function');
 	} else if(hostname.endsWith('.hao123.com') || hostname.value == 'hao123.com'){
 		var expires = new Date();
@@ -142,7 +163,7 @@
 		if(topbanner){
 			topbanner.style.display='none';
 		}
-
+		
 		log('PATCH-1194, remove topbanner on www.hao123.com');
 	} else if(hostname.endsWith('.icloud.com') || hostname.value == 'icloud.com'){
 		Object.defineProperty(window, "SC", {
@@ -187,7 +208,7 @@
 		Object.defineProperty(window.navigator, "userAgent", {
 			get: function() {return _newUA}
 		});
-
+		
 		log('PATCH-1187, iTunes U Course Manager - hide Opera tag');
 	} else if(hostname.endsWith('my.tnt.com')){
 		var _orig_clearPrintBlock;
@@ -203,7 +224,7 @@
 				}
 			}
 		}
-
+		
 		document.addEventListener('DOMContentLoaded', function() {
 			var mpl = window.matchMedia("print");
 			mpl.addListener(handleMediaChange);
@@ -211,14 +232,28 @@
 		log('PATCH-1156, my.tnt.com - fix empty printout');
 	} else if(hostname.indexOf('.google.')>-1){
 		/* Google */
-
-
+	
+	
 		if(hostname.contains('docs.google.') || hostname.contains('drive.google.')){
-			document.addEventListener('DOMContentLoaded',function(){
-				var elm = document.querySelector('a[href="http://whatbrowser.org"] + a + a');
-				if(elm){elm.click();}
-			},false);
-			log('PATCH-1032, Google Docs - auto-close unsupported browser message');
+			document.addEventListener('DOMContentLoaded', function() {
+				var target = document.querySelector('#drive_main_page [aria-live="assertive"]');
+			
+				var observer = new MutationObserver(function(mutations) {
+					mutations.forEach(function(mutation) {
+						if(mutation.type == 'childList' &&
+							mutation.addedNodes.length == 1 &&
+							mutation.addedNodes[0].innerHTML.match(/\/\/support.google.com\/drive\/\?p=system_requirements"/)){
+							mutation.target.innerHTML = '';
+							observer.disconnect();
+						}
+					});
+				});
+			
+				console.log('Google, please make sure your obfuscator does not change class names, so our patch continues working (or stop browser-sniffing as we both use and contribute to Blink!) - love, Opera.');
+				observer.observe(target, {childList: true, subtree:true});
+			}, false)
+			
+			log('PATCH-1191, Still an "unsupported browser" according to Google');
 		}
 		if(hostname.contains('mail.google.')){
 			addCssToDocument2('div.n6 {display: block !important} table.cf.hX{display:inline-table}');//"more", labels
@@ -241,7 +276,7 @@
 			Object.defineProperty(window.navigator, "userAgent", {
 				get: function() {return _newUA}
 			});
-
+			
 			log('PATCH-1176, Navigation keys are not working on Google - hide Opera tag from userAgent for all sites except hangouts');
 		}
 	} else if(hostname.indexOf('.youtube.com')>-1){
@@ -277,7 +312,7 @@
 					if(arg.split('"').length==2)arg+='"';
 					this.__embed_size_attr__ = arg;
 				}
-			});
+			});	
 		}
 		log('PATCH-555, Analytix: add missing end quote');
 	}
