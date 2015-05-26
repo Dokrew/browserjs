@@ -1,4 +1,4 @@
-// do1Nx4fIWvAnPPmyRB/IQiLt0F2Xn8+ayU5KyLfh2MQCliCJojWpQIiwx+4UUyC9PoBFqN3/ZnDbA4f5IkzRaV6mvmpb+R8+3gc/sBFI6rZUesXoOi/3R77xT4rpIAgSc/cp2KmZYE/NWgLuoQ09rJiuCdwDxor7J8tvg0C7/UYXxtvdiL4lonpK86A7aFIRV8s0Ue5CkL3BqFB1fhMzXSvCBF8hE5/7TLQdIeFmD/SLBcpXgQcwTbTB+Ju3lOkeVeRLXXTO3cHAnz/QC1CWCT0eAbr6OHYPF4twYQcbwhuV1s43LO8HWkItiVO45yNsWp/NwaHit2U2d/fJ9icT/w==
+// WN2sIgvwGLABqF43Gt/dm2ZGWdTOaOYeOmohRyWKhp+IakotqWnxfE0AMsgoZZweNHvs5waJkUK8Lz7/UY30GsPEFJQzU7+N5RhQx+czqc8zqfCEmZRKKYt1sVf1jd6o07uc0gWvAEbfv18TCGR1X6GAk8IxVNoaZA1+OuXBK5pFo1rUkoxrxqTfq5mvxrgtQbd0Ey/alWXz8/QoKP67eC1rNgiE0TkX/fH+1wOg/5S6jQP12HGlM/S/2P8k2YlPnI5Y4xpZzzp+nfZrOQRZXU/m1Rz1QaaXIxYKTILDW4gPyndXJwJRjspkHQXAG8x5rbhFIvpUMmgXvIWo1k+QVA==
 /**
 ** Copyright (C) 2000-2015 Opera Software ASA.  All rights reserved.
 **
@@ -18,8 +18,8 @@
 	if(location.href.indexOf('operabrowserjs=no')!=-1) {
 		return;
 	}
-	var bjsversion = " Opera OPRDesktop 28.0 core 1750.0, March 30, 2015." +
-					 " Active patches: 19 ";
+	var bjsversion = " Opera OPRDesktop 28.0 core 1750.0, May 20, 2015." +
+					 " Active patches: 18 ";
 
 	var href = location.href;
 	var pathname = location.pathname;
@@ -79,7 +79,7 @@
 				});
 			}, false)
 		}
-
+		
 		log('PATCH-1173, ssc[online][2].{nic,gov}.in - Netscape not supported message - workaround browser sniffing');
 	} else if(hostname.endsWith('.delta.com') || hostname.value == 'delta.com'){
 		var UnsupportedBrowser;
@@ -90,7 +90,7 @@
 				UnsupportedBrowser = arg;
 			}
 		});
-
+		
 		log('PATCH-1190, Delta.com shows browser warning to Opera 25');
 	} else if(hostname.endsWith('.facebook.com') || hostname.value == 'facebook.com'){
 		document.addEventListener("keypress", function(e) {
@@ -117,11 +117,11 @@
 		var expires = new Date();
 		expires.setDate(expires.getDate()+14);
 		document.cookie='toptip=100;expires='+expires.toGMTString()+';domain=.hao123.com;path=/';
-		var topbanner = querySelector('.widget-topbanner');
+		var topbanner = document.querySelector('.widget-topbanner');
 		if(topbanner){
 			topbanner.style.display='none';
 		}
-
+		
 		log('PATCH-1194, remove topbanner on www.hao123.com');
 	} else if(hostname.endsWith('.icloud.com') || hostname.value == 'icloud.com'){
 		Object.defineProperty(window, "SC", {
@@ -166,7 +166,7 @@
 		Object.defineProperty(window.navigator, "userAgent", {
 			get: function() {return _newUA}
 		});
-
+		
 		log('PATCH-1187, iTunes U Course Manager - hide Opera tag');
 	} else if(hostname.endsWith('my.tnt.com')){
 		var _orig_clearPrintBlock;
@@ -182,7 +182,7 @@
 				}
 			}
 		}
-
+		
 		document.addEventListener('DOMContentLoaded', function() {
 			var mpl = window.matchMedia("print");
 			mpl.addListener(handleMediaChange);
@@ -190,27 +190,36 @@
 		log('PATCH-1156, my.tnt.com - fix empty printout');
 	} else if(hostname.indexOf('.google.')>-1){
 		/* Google */
-
-
+	
+	
 		if(hostname.startsWith('docs.google.') || hostname.startsWith('drive.google.')){
-			document.addEventListener('DOMContentLoaded', function() {
+			var timeout = 100;
+			var fixit = function(target) {
+				if(target.innerHTML.match(/\/\/support.google.com\/drive\/\?p=system_requirements"/)) {
+					target.querySelector('[data-target="dismiss"]').click();
+				}
+			}
+			var init = function() {
 				var target = document.querySelector('#drive_main_page [aria-live="assertive"]');
-
-				var observer = new MutationObserver(function(mutations) {
-					mutations.forEach(function(mutation) {
-						if(mutation.type == 'childList' &&
-							mutation.addedNodes.length == 1 &&
-							mutation.addedNodes[0].innerHTML.match(/\/\/support.google.com\/drive\/\?p=system_requirements"/)){
-							mutation.target.innerHTML = '';
-							observer.disconnect();
-						}
+				if(target) {
+					var observer = new MutationObserver(function(mutations) {
+						mutations.forEach(function(mutation) {
+							if(mutation.type == 'childList' &&
+								mutation.addedNodes.length == 1) {
+								fixit(mutation.target);
+							}
+						});
+						console.log('Google, please make sure your obfuscator does not change class names, so our patch continues working (or stop browser-sniffing as we both use and contribute to Blink!) - love, Opera.');
 					});
-				});
-
-				console.log('Google, please make sure your obfuscator does not change class names, so our patch continues working (or stop browser-sniffing as we both use and contribute to Blink!) - love, Opera.');
-				observer.observe(target, {childList: true, subtree:true});
-			}, false)
-
+					observer.observe(target, {childList: true, subtree: true});
+					fixit(target);
+				} else {
+					setTimeout(init, timeout);
+					timeout *= 2;
+				}
+			}
+			document.addEventListener('DOMContentLoaded', init, false);
+			
 			log('PATCH-1191, Still an "unsupported browser" according to Google');
 		}
 		if(hostname.startsWith('mail.google.')){
@@ -229,16 +238,12 @@
 			,false);
 			log('PATCH-1148, Google Translate: use flash instead of mp3-audio');
 		}
-		if(hostname.startsWith('www.google.') || hostname.startsWith('google.')){
-			addCssToDocument2('#prt {visibility:hidden}')
-			log('PATCH-1197, Hide Chrome ad from main Google page');
-		}
 		if(pathname.indexOf('hangouts')==-1){
 			var _newUA = navigator.userAgent.replace(/ ?OPR.[0-9.]*/, '');
 			Object.defineProperty(window.navigator, "userAgent", {
 				get: function() {return _newUA}
 			});
-
+			
 			log('PATCH-1176, Navigation keys are not working on Google - hide Opera tag from userAgent for all sites except hangouts');
 		}
 	} else if(hostname.indexOf('.youtube.com')>-1){
@@ -274,7 +279,7 @@
 					if(arg.split('"').length==2)arg+='"';
 					this.__embed_size_attr__ = arg;
 				}
-			});
+			});	
 		}
 		log('PATCH-555, Analytix: add missing end quote');
 	}
