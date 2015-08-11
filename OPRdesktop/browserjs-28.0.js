@@ -1,4 +1,4 @@
-// WN2sIgvwGLABqF43Gt/dm2ZGWdTOaOYeOmohRyWKhp+IakotqWnxfE0AMsgoZZweNHvs5waJkUK8Lz7/UY30GsPEFJQzU7+N5RhQx+czqc8zqfCEmZRKKYt1sVf1jd6o07uc0gWvAEbfv18TCGR1X6GAk8IxVNoaZA1+OuXBK5pFo1rUkoxrxqTfq5mvxrgtQbd0Ey/alWXz8/QoKP67eC1rNgiE0TkX/fH+1wOg/5S6jQP12HGlM/S/2P8k2YlPnI5Y4xpZzzp+nfZrOQRZXU/m1Rz1QaaXIxYKTILDW4gPyndXJwJRjspkHQXAG8x5rbhFIvpUMmgXvIWo1k+QVA==
+// Hh6TTKHJMRSmO+D044yNzXntlCLe1r5jtJnq99gJQ0jkyr1OO9Ab2sur5AUGJiDoCNiz0hyHoT/HgM+Yd+4rjvLf7ohssX9AEpmvXhzYxCYkoqIUFBiYa80QuULrZOKpgI86yJLLYQVAV943sF1T+pkI/Uxg96Wh4gfD0Ym8Q6/6kKUWFRb95/mlfUpYuGiOwquqge4Nngc6hZOGggs0mfSFE+p7O3th4CQFTCXXrgAdx4hgGvtSLy2DmO+JRs9dKastLeA0r56KzDmgJFsF93CgV64EhFq2ws0dYTsV5VP1ynres7kylacK9gkYXn7QhBVZ4iGQLGNwbleV/eH2KA==
 /**
 ** Copyright (C) 2000-2015 Opera Software ASA.  All rights reserved.
 **
@@ -18,8 +18,8 @@
 	if(location.href.indexOf('operabrowserjs=no')!=-1) {
 		return;
 	}
-	var bjsversion = " Opera OPRDesktop 28.0 core 1750.0, May 20, 2015." +
-					 " Active patches: 18 ";
+	var bjsversion = " Opera OPRDesktop 28.0 core 1750.0, August 6, 2015." +
+					 " Active patches: 20 ";
 
 	var href = location.href;
 	var pathname = location.pathname;
@@ -79,8 +79,12 @@
 				});
 			}, false)
 		}
-		
+
 		log('PATCH-1173, ssc[online][2].{nic,gov}.in - Netscape not supported message - workaround browser sniffing');
+	} else if(hostname.endsWith('.bankofamerica.com') || hostname.value == 'bankofamerica.com'){
+			addCssToDocument2('#browserUpgradeNoticeBar {display:none}');
+
+		log('PATCH-1199, Unsupported browser warning on https://www.bankofamerica.com/');
 	} else if(hostname.endsWith('.delta.com') || hostname.value == 'delta.com'){
 		var UnsupportedBrowser;
 		Object.defineProperty(window, "UnsupportedBrowser", {
@@ -90,7 +94,7 @@
 				UnsupportedBrowser = arg;
 			}
 		});
-		
+
 		log('PATCH-1190, Delta.com shows browser warning to Opera 25');
 	} else if(hostname.endsWith('.facebook.com') || hostname.value == 'facebook.com'){
 		document.addEventListener("keypress", function(e) {
@@ -121,7 +125,7 @@
 		if(topbanner){
 			topbanner.style.display='none';
 		}
-		
+
 		log('PATCH-1194, remove topbanner on www.hao123.com');
 	} else if(hostname.endsWith('.icloud.com') || hostname.value == 'icloud.com'){
 		Object.defineProperty(window, "SC", {
@@ -166,7 +170,7 @@
 		Object.defineProperty(window.navigator, "userAgent", {
 			get: function() {return _newUA}
 		});
-		
+
 		log('PATCH-1187, iTunes U Course Manager - hide Opera tag');
 	} else if(hostname.endsWith('my.tnt.com')){
 		var _orig_clearPrintBlock;
@@ -182,7 +186,7 @@
 				}
 			}
 		}
-		
+
 		document.addEventListener('DOMContentLoaded', function() {
 			var mpl = window.matchMedia("print");
 			mpl.addListener(handleMediaChange);
@@ -190,8 +194,8 @@
 		log('PATCH-1156, my.tnt.com - fix empty printout');
 	} else if(hostname.indexOf('.google.')>-1){
 		/* Google */
-	
-	
+
+
 		if(hostname.startsWith('docs.google.') || hostname.startsWith('drive.google.')){
 			var timeout = 100;
 			var fixit = function(target) {
@@ -219,7 +223,7 @@
 				}
 			}
 			document.addEventListener('DOMContentLoaded', init, false);
-			
+
 			log('PATCH-1191, Still an "unsupported browser" according to Google');
 		}
 		if(hostname.startsWith('mail.google.')){
@@ -238,14 +242,17 @@
 			,false);
 			log('PATCH-1148, Google Translate: use flash instead of mp3-audio');
 		}
-		if(pathname.indexOf('hangouts')==-1){
-			var _newUA = navigator.userAgent.replace(/ ?OPR.[0-9.]*/, '');
-			Object.defineProperty(window.navigator, "userAgent", {
-				get: function() {return _newUA}
-			});
-			
-			log('PATCH-1176, Navigation keys are not working on Google - hide Opera tag from userAgent for all sites except hangouts');
+		if(hostname.startsWith('www.google.') || hostname.startsWith('google.')){
+			addCssToDocument2('#prt {visibility:hidden}')
+			log('PATCH-1197, Hide Chrome ad from main Google page');
 		}
+
+		var _newUA = navigator.userAgent.replace(/ ?OPR.[0-9.]*/, '');
+		Object.defineProperty(window.navigator, "userAgent", {
+			get: function() {return _newUA}
+		});
+		log('PATCH-1176, Navigation keys are not working on Google - hide Opera tag from userAgent for all sites except hangouts');
+
 	} else if(hostname.indexOf('.youtube.com')>-1){
 		addCssToDocument2('#movie_player { z-index: 100 !important; }');
 		log('PATCH-1185, youtube.com - show video above playlist');
@@ -279,7 +286,7 @@
 					if(arg.split('"').length==2)arg+='"';
 					this.__embed_size_attr__ = arg;
 				}
-			});	
+			});
 		}
 		log('PATCH-555, Analytix: add missing end quote');
 	}
