@@ -1,4 +1,4 @@
-// Hh6TTKHJMRSmO+D044yNzXntlCLe1r5jtJnq99gJQ0jkyr1OO9Ab2sur5AUGJiDoCNiz0hyHoT/HgM+Yd+4rjvLf7ohssX9AEpmvXhzYxCYkoqIUFBiYa80QuULrZOKpgI86yJLLYQVAV943sF1T+pkI/Uxg96Wh4gfD0Ym8Q6/6kKUWFRb95/mlfUpYuGiOwquqge4Nngc6hZOGggs0mfSFE+p7O3th4CQFTCXXrgAdx4hgGvtSLy2DmO+JRs9dKastLeA0r56KzDmgJFsF93CgV64EhFq2ws0dYTsV5VP1ynres7kylacK9gkYXn7QhBVZ4iGQLGNwbleV/eH2KA==
+// XhFtTFKMJsQRDkn3Rs/eAA9sGWpoqfJ9bSSWRhLrGdZ2lQ3cfiLPV+x6CHZzkmY9FCB6lW2MEQr1m7kK3i3RYYbHsy46HU94CVPDieRQyqCGUG4sgDK0pbxrQC/8X0MprSLqCLj3Pi2qqEVC3oTSs+LmZuKcc5XF30uIjk4Lhp0vyvXk1I7WOacNC9WzHDKuleQxY42p/VLPUyhYc3auBm1oUgi8dxI6CmV/rdBcTcrc6wEfMFyarfuH0zZmrmbmP9CP/7bhV6sVz2z0w/LimlesmI1n5mmOgae+FpwuVUykgeV/4EDSgUUKnODJ9UdrVBT0DuHdyyz6qYRPZx6u1Q==
 /**
 ** Copyright (C) 2000-2015 Opera Software ASA.  All rights reserved.
 **
@@ -18,7 +18,7 @@
 	if(location.href.indexOf('operabrowserjs=no')!=-1) {
 		return;
 	}
-	var bjsversion = " Opera OPRDesktop 28.0 core 1750.0, August 6, 2015." +
+	var bjsversion = " Opera OPRDesktop 28.0 core 1750.0, November 26, 2015." +
 					 " Active patches: 20 ";
 
 	var href = location.href;
@@ -40,9 +40,12 @@
 
 	function log(str) {
 		console.log("Opera has modified script or content on "
-								+ hostname + " (" + str + "). See browser.js for details");
+			+ hostname + " (" + str + "). See browser.js for details");
 	}
 
+	function isPartOfDomain(host){
+		return hostname.endsWith('.' + host) || hostname == host;
+	}
 
 	// Utility functions
 
@@ -77,15 +80,72 @@
 				Object.defineProperty(window.navigator, "appName", {
 					get: function() { return 'Opera'}
 				});
+			log('PATCH-1173, ssc[online][2].{nic,gov}.in - Netscape not supported message - workaround browser sniffing');
 			}, false)
 		}
 
-		log('PATCH-1173, ssc[online][2].{nic,gov}.in - Netscape not supported message - workaround browser sniffing');
-	} else if(hostname.endsWith('.bankofamerica.com') || hostname.value == 'bankofamerica.com'){
-			addCssToDocument2('#browserUpgradeNoticeBar {display:none}');
+	} else if(isPartOfDomain('bluejeans.com')){
+		if(!window.chrome.runtime || !window.chrome.runtime.sendMessage) {
+			window.chrome.runtime = { "sendMessage" : function () {} };
+			log('PATCH-1207, Bluejeans web app doesn\'t work with Opera');
+		}
 
-		log('PATCH-1199, Unsupported browser warning on https://www.bankofamerica.com/');
-	} else if(hostname.endsWith('.delta.com') || hostname.value == 'delta.com'){
+		// remember, kids: navigator.userAgent lies; navigator.platform doesn't
+		if(navigator.platform.startsWith('Mac')) {
+			function myfix(){
+				if(window.Endpoints && Endpoints.Skinny) {
+					function bjs_fixit(a,b){a[b]=a[b].replace(/([^a-z]*)$/,'x64$1')};
+					bjs_fixit(Endpoints.Skinny,'base_filename');
+					bjs_fixit(Endpoints.Skinny.plugin_filename_map,'blue');
+					bjs_fixit(Endpoints.Skinny.plugin_filename_map,'green');
+					bjs_fixit(Endpoints.Skinny.plugin_filename_map,'red');
+					log('PATCH-1209, force 64-bit Bluejeans plugin on Mac');
+				} else {
+					setTimeout(myfix, 1000);
+				}
+			}
+			document.addEventListener('DOMContentLoaded', myfix);
+		} else if(navigator.platform.startsWith('Win')) {
+			var mutationObserver = window.MutationObserver;
+			function patch_function(){
+				try {
+					require("Plugin/PluginColorInfo").getInstallerFilename = function (e,t){return t+e+".msi"};
+					log('PATCH-1209, force Win Bluejeans plugin on Win');
+				} catch(e) {
+					setTimeout(patch_function,1000);
+				}
+			}
+			function when_element(){
+				var target_id = 'uncontained_main_content';
+				var object_class = 'container';
+				var target = document.getElementById(target_id);
+				if(target && window.require) {
+					if(target.getElementsByClassName(object_class).length>0){
+						patch_function();
+					} else {
+						var observer = new mutationObserver(function(mutations) {
+							'use strict';
+							for(let mutation of mutations) {
+								for(let i=0; i<mutation.addedNodes.length; i++) {
+									if(mutation.addedNodes[i].classList.contains(object_class)) {
+										patch_function();
+										observer.disconnect();
+										return;
+									}
+								}
+							}
+						});
+						var config = {childList: true};
+						observer.observe(target, config);
+					}
+				} else {
+					setTimeout(when_element,1000);
+				}
+			};
+			document.addEventListener('DOMContentLoaded', when_element);
+		}
+
+	} else if(isPartOfDomain('delta.com')){
 		var UnsupportedBrowser;
 		Object.defineProperty(window, "UnsupportedBrowser", {
 			get: function(){return UnsupportedBrowser},
@@ -96,7 +156,7 @@
 		});
 
 		log('PATCH-1190, Delta.com shows browser warning to Opera 25');
-	} else if(hostname.endsWith('.facebook.com') || hostname.value == 'facebook.com'){
+	} else if(isPartOfDomain('facebook.com')){
 		document.addEventListener("keypress", function(e) {
 		    // check if it's first character here
 		    if (e.target.textContent !== '')
@@ -117,7 +177,7 @@
 		    e.target.dispatchEvent(newE);
 		})
 		log('PATCH-1195, Facebook - block first character in the comment field from triggering a single key keyboard shortcut');
-	} else if(hostname.endsWith('.hao123.com') || hostname.value == 'hao123.com'){
+	} else if(isPartOfDomain('hao123.com')){
 		var expires = new Date();
 		expires.setDate(expires.getDate()+14);
 		document.cookie='toptip=100;expires='+expires.toGMTString()+';domain=.hao123.com;path=/';
@@ -127,7 +187,7 @@
 		}
 
 		log('PATCH-1194, remove topbanner on www.hao123.com');
-	} else if(hostname.endsWith('.icloud.com') || hostname.value == 'icloud.com'){
+	} else if(isPartOfDomain('icloud.com')){
 		Object.defineProperty(window, "SC", {
 			get: function(){return this.__SC__},
 			set: function(arg) {
@@ -146,10 +206,10 @@
 			}
 		});
 		log('PATCH-1174, iCloud iWork new document stays blank - camouflage as Chrome');
-	} else if(hostname.endsWith('.stanserhorn.ch') || hostname.value == 'stanserhorn.ch'){
+	} else if(isPartOfDomain('stanserhorn.ch')){
 		Object.defineProperty(navigator, 'vendor', { get: function(){ return 'Google Inc.' } });
 		log('OTWK-21, stanserhorn.ch - fix UDM sniffing');
-	} else if(hostname.endsWith('.vimeo.com') || hostname.value == 'vimeo.com'){
+	} else if(isPartOfDomain('vimeo.com')){
 		var isPatched = false;
 		function patch(){
 			document.body.addEventListener('click',function(){
