@@ -269,7 +269,8 @@
       log('PATCH-1223 , Hide another Chrome ad from main Google page');
     }
 
-  } else if (hostname.indexOf('.youtube.com') > -1) {
+  } else if (hostname.indexOf('.youtube.com') > -1 &&
+             pathname.indexOf('/endscreen') == -1) {
     addCssToDocument2('#movie_player { z-index: 100 !important; }');
     log('PATCH-1185, youtube.com - show video above playlist');
   } else if (hostname.indexOf('opera.com') > -1 &&
